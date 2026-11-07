@@ -1,10 +1,11 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Float, Stars, Text, ContactShadows } from '@react-three/drei'
 import * as THREE from 'three'
+import type { Project } from '../data/portfolio'
 
 export type RoomTarget = 'projects' | 'skills' | 'about' | 'experience' | 'contact'
-type Props = { onSelect: (target: RoomTarget) => void; compact: boolean }
+type Props = { onSelect: (target: RoomTarget) => void; compact: boolean; projects: Project[] }
 
 function GlowOrb({ position, color, scale = 0.18 }: { position: [number, number, number]; color: string; scale?: number }) {
   const ref = useRef<THREE.Mesh>(null!)
@@ -28,7 +29,47 @@ function ClickObject({ position, size, color, label, target, onSelect, children 
   </group>
 }
 
-function Scene({ onSelect, compact }: Props) {
+function ProjectMonitorImages({ projects }: { projects: Project[] }) {
+  const imageProjects = projects.filter(project => (project.image ?? '').trim())
+  const [textures, setTextures] = useState<Record<string, THREE.Texture>>({})
+
+  useEffect(() => {
+    let active = true
+    const loader = new THREE.TextureLoader()
+    imageProjects.forEach(project => {
+      loader.load(project.image, texture => {
+        if (active) {
+          texture.colorSpace = THREE.SRGBColorSpace
+          setTextures(current => ({ ...current, [project.image]: texture }))
+        } else {
+          texture.dispose()
+        }
+      }, undefined, () => undefined)
+    })
+    return () => {
+      active = false
+      Object.values(textures).forEach(texture => texture.dispose())
+    }
+  }, [projects])
+
+  const count = imageProjects.length
+  if (!count) return null
+  const tileWidth = Math.min(0.72, 3.05 / count - 0.025)
+  const gap = 3.05 / count
+
+  return <group position={[0, 1.98, -1.285]}>
+    {imageProjects.map((project, index) => {
+      const texture = textures[project.image]
+      if (!texture) return null
+      return <mesh key={`${project.image}-${index}`} position={[(index - (count - 1) / 2) * gap, 0, 0]}>
+        <planeGeometry args={[tileWidth, 0.78]} />
+        <meshBasicMaterial map={texture} toneMapped={false} />
+      </mesh>
+    })}
+  </group>
+}
+
+function Scene({ onSelect, compact, projects }: Props) {
   const group = useRef<THREE.Group>(null!)
   useFrame((state, delta) => {
     if (group.current) {
@@ -63,6 +104,7 @@ function Scene({ onSelect, compact }: Props) {
       <mesh position={[0.92, 1.95, -1.435]}><planeGeometry args={[1.4, 0.9]} /><meshBasicMaterial color="#171b42" /></mesh>
       <Text position={[-0.78, 2.05, -1.42]} fontSize={0.12} color="#60baff" anchorX="center">{"< BUILD />"}</Text>
       <Text position={[0.92, 2.05, -1.42]} fontSize={0.105} color="#a98aff" anchorX="center">THE DIGITAL ROOM</Text>
+      <ProjectMonitorImages projects={projects} />
       <mesh position={[0, 1.52, -1.5]}><boxGeometry args={[0.12, 0.75, 0.12]} /><meshStandardMaterial color="#46536b" metalness={0.8} /></mesh>
       <ClickObject position={[0, 1.98, -1.37]} size={[3.5, 1.25, 0.12]} color="#111a2b" label="PROJECTS / CLICK MONITOR" target="projects" onSelect={onSelect} />
       {/* keyboard and mouse */}
@@ -95,8 +137,8 @@ function Scene({ onSelect, compact }: Props) {
   </>
 }
 
-export default function Room({ onSelect, compact }: Props) {
+export default function Room({ onSelect, compact, projects }: Props) {
   return <Canvas shadows camera={{ position: [0, 3.2, 8.6], fov: 48 }} dpr={compact ? [1, 1.25] : [1, 1.7]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
-    <Scene onSelect={onSelect} compact={compact} />
+    <Scene onSelect={onSelect} compact={compact} projects={projects} />
   </Canvas>
 }

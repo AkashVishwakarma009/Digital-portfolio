@@ -43,7 +43,7 @@ export default function App() {
   }
 
   return <main className="app-shell">
-    <div className="scene-wrap"><Room onSelect={open} compact={compact}/></div>
+    <div className="scene-wrap"><Room onSelect={open} compact={compact} projects={data.projects}/></div>
     <div className="scene-vignette"/>
     <header className="site-header">
       <button className="wordmark" onClick={() => { setIntro(false); setTarget(null) }}><span className="brand-mark">DR<span>®</span></span><span>THE DIGITAL<br/><b>ROOM</b></span></button>

@@ -30,7 +30,7 @@ The separate admin console is available at `/admin`. It uses Firebase Email/Pass
 4. Configure Realtime Database rules so only authenticated users can write the `portfolio` path.
 5. Run `npm run dev`, then open `/admin` to sign in and manage the complete portfolio.
 
-The admin console manages profile details, social links, skills, projects, experience and education/certifications. Changes are saved to the `portfolio` node and appear on the public portfolio automatically. Project images can be changed through their image URL/path; upload the image to your hosting or image service first. The public portfolio uses the local sample data until the Firebase database has a `portfolio` object. Never commit `.env`.
+The admin console manages profile details, social links, skills, projects, experience and education/certifications. Changes are saved to the `portfolio` node and appear on the public portfolio automatically. For project images, paste a public image URL or a path such as `/images/project.jpg` in the admin panel; this project does not use Firebase Storage. Host images on your preferred free image host or place them in `public/images` before deployment. The image appears at the top of that project card in the public Projects panel. Click **Save changes** after editing. The public portfolio uses the local sample data until the Firebase database has a `portfolio` object. Never commit `.env`.
 For Firebase Hosting, run `npm run build`, then `firebase deploy`. The included `firebase.json` rewrites `/admin` to the SPA entry point; set your Firebase project with `firebase use <project-id>` first.
 
 ## Notes
